@@ -2,7 +2,6 @@ package com.jikchin.app.data.remote.api
 
 import com.jikchin.app.domain.model.AccessTokenRequest
 import com.jikchin.app.domain.model.CompleteProfileRequest
-import com.jikchin.app.domain.model.LoginRequest
 import com.jikchin.app.domain.model.SocialLoginResponse
 import com.jikchin.app.domain.model.TokenResponse
 import retrofit2.http.Body
