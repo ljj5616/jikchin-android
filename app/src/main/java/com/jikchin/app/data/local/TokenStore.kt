@@ -5,30 +5,32 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 
-private val Context.dataStore by preferencesDataStore(name = "auth_tokens")
+private val Context.dataStore by preferencesDataStore("auth_prefs")
 
 class TokenStore(private val context: Context) {
     companion object {
-        private val KEY_ACCESS = stringPreferencesKey("access")
-        private val KEY_REFRESH = stringPreferencesKey("refresh")
+        private val KEY_ACCESS = stringPreferencesKey("access_token")
+        private val KEY_REFRESH = stringPreferencesKey("refresh_token")
     }
 
-    suspend fun save(access: String, refresh: String) {
-        context.dataStore.edit { pref ->
-            pref[KEY_ACCESS] = access
-            pref[KEY_REFRESH] = refresh
+    fun save(access: String?, refresh: String?) = runBlocking {
+        context.dataStore.edit { prefs ->
+            if (access != null) prefs[KEY_ACCESS] = access else prefs.remove(KEY_ACCESS)
+            if (refresh != null) prefs[KEY_REFRESH] = refresh else prefs.remove(KEY_REFRESH)
         }
     }
 
-    suspend fun clear() {
+    fun clear() = runBlocking {
         context.dataStore.edit { it.clear() }
     }
 
-    suspend fun getAccess(): String? =
-        context.dataStore.data.map { it[KEY_ACCESS] }.first()
+    fun getAccessToken(): String? = runBlocking {
+        context.dataStore.data.first()[KEY_ACCESS]
+    }
 
-    suspend fun getRefresh(): String? =
-        context.dataStore.data.map { it[KEY_REFRESH] }.first()
+    fun getRefreshToken(): String? = runBlocking {
+        context.dataStore.data.first()[KEY_REFRESH]
+    }
 }
