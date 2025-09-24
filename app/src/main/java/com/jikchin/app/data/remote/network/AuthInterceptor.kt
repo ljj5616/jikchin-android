@@ -9,13 +9,12 @@ class AuthInterceptor(
     private val tokenStore: TokenStore
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        val req = chain.request()
-        val access = runBlocking { tokenStore.getAccess() }
-        val newReq = if (!access.isNullOrBlank()) {
-            req.newBuilder()
+        val access = tokenStore.getAccessToken()
+        val req = if (!access.isNullOrBlank()) {
+            chain.request().newBuilder()
                 .addHeader("Authorization", "Bearer $access")
                 .build()
-        } else req
-        return chain.proceed(newReq)
+        } else chain.request()
+        return chain.proceed(req)
     }
 }
