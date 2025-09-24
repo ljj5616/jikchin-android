@@ -19,6 +19,10 @@ android {
 
         buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080/\"")
         buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"e4882b08806d1be78a7bcfd25f86d4e5\"")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"256750487558-joj181fgtog89sq0qc33360s4bt6cuq0.apps.googleusercontent.com\"")
+        buildConfigField("String", "NAVER_CLIENT_ID", "\"DQGp0HgGDLXK_JbDDKHf\"")
+        buildConfigField("String", "NAVER_CLIENT_SECRET", "\"JZzTGIPMWs\"")
+        buildConfigField("String", "NAVER_APP_NAME", "\"Jikchin\"")
     }
 
     buildTypes {
