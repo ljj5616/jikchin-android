@@ -15,8 +15,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import androidx.activity.result.contract.ActivityResultContracts
-import com.jikchin.app.BuildConfig
-
 class MainActivity : ComponentActivity() {
 
     private lateinit var googleClient: GoogleSignInClient
@@ -24,20 +22,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Retrofit/TokenStore 초기화
-        ServiceLocator.init(this)
+        // ServiceLocator, Naver init은 Application에서 이미 완료됨
         val authRepo = AuthRepository(ServiceLocator.authApi, ServiceLocator.tokenStore)
         val vm = LoginViewModel(authRepo)
 
-        // Naver init
-        NaverIdLoginSDK.initialize(
-            applicationContext,
-            BuildConfig.NAVER_CLIENT_ID,
-            BuildConfig.NAVER_CLIENT_SECRET,
-            BuildConfig.NAVER_APP_NAME
-        )
-
-        // Google init
+        // Google init (여기는 OK)
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
             .requestEmail()
@@ -47,15 +36,16 @@ class MainActivity : ComponentActivity() {
         val googleLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            runCatching { task.result }
-                .onSuccess { account ->
-                    val idToken = account.idToken ?: ""
-                    vm.socialLogin("google", idToken)
-                }
-                .onFailure {
-                    vm.socialLogin("google", "")
-                }
+            runCatching {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                val account = task.getResult(com.google.android.gms.common.api.ApiException::class.java)
+                val idToken = account.idToken ?: error("Empty Google ID token")
+                idToken
+            }.onSuccess { idToken ->
+                vm.socialLogin("google", idToken)
+            }.onFailure {
+                vm.fail("Google 로그인 실패")
+            }
         }
 
         setContent {
@@ -65,35 +55,33 @@ class MainActivity : ComponentActivity() {
                     onClickGoogle = { googleLauncher.launch(googleClient.signInIntent) },
                     onClickKakao = {
                         val tryAccount = {
-                            UserApiClient.instance.loginWithKakaoAccount(this) { token, _ ->
-                                vm.socialLogin("kakao", token?.accessToken ?: "")
+                            UserApiClient.instance.loginWithKakaoAccount(this) { token, error ->
+                                if (error != null) vm.fail("Kakao 로그인 실패")
+                                else vm.socialLogin("kakao", token?.accessToken ?: return@loginWithKakaoAccount vm.fail("Kakao 토큰 비어있음"))
                             }
                         }
                         UserApiClient.instance.loginWithKakaoTalk(this) { token, error ->
                             if (error != null) tryAccount()
-                            else vm.socialLogin("kakao", token?.accessToken ?: "")
+                            else vm.socialLogin("kakao", token?.accessToken ?: return@loginWithKakaoTalk vm.fail("Kakao 토큰 비어있음"))
                         }
                     },
                     onClickNaver = {
                         NaverIdLoginSDK.authenticate(this, object : OAuthLoginCallback {
                             override fun onSuccess() {
-                                val t = NaverIdLoginSDK.getAccessToken() ?: ""
-                                vm.socialLogin("naver", t)
+                                val t = NaverIdLoginSDK.getAccessToken()
+                                if (t.isNullOrBlank()) vm.fail("Naver 토큰 비어있음")
+                                else vm.socialLogin("naver", t)
                             }
                             override fun onFailure(httpStatus: Int, message: String) {
-                                vm.socialLogin("naver", "")
+                                vm.fail("Naver 로그인 실패: $message")
                             }
                             override fun onError(errorCode: Int, message: String) {
-                                vm.socialLogin("naver", "")
+                                vm.fail("Naver 로그인 에러: $message")
                             }
                         })
                     },
                     onNext = { needProfile ->
-                        if (needProfile) {
-                            // 온보딩 화면으로 이동
-                        } else {
-                            // 메인 화면으로 이동
-                        }
+                        // TODO: 라우팅
                     }
                 )
             }
