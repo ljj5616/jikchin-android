@@ -26,8 +26,13 @@ android {
     }
 
     buildTypes {
-        release {
+        debug {
+            // 개발용: 난독화/최적화 끔
             isMinifyEnabled = false
+        }
+        release {
+            // 배포용: 난독화/최적화 켬
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
