@@ -30,4 +30,8 @@ class LoginViewModel(
             )
         }
     }
+
+    fun fail(message: String) {
+        _state.value= LoginUiState.Error(message)
+    }
 }
