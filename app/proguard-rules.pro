@@ -19,3 +19,15 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Kakao SDK
+-keep class com.kakao.** { *; }
+-dontwarn com.kakao.**
+
+# Naver SDK
+-keep class com.navercorp.nid.** { *; }
+-dontwarn com.navercorp.nid.**
+
+# Moshi (JSON 파싱용)
+-keep class com.squareup.moshi.** { *; }
+-keepattributes Signature,*Annotation*
