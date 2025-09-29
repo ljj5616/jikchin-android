@@ -21,7 +21,8 @@ object ServiceLocator {
         private set
 
     fun init(context: Context, baseUrl: String = BuildConfig.BASE_URL) {
-        tokenStore = TokenStore(context)
+        val appCtx = context.applicationContext
+        tokenStore = TokenStore(appCtx)
 
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
