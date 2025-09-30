@@ -5,6 +5,8 @@ import com.jikchin.app.BuildConfig
 import com.jikchin.app.data.local.TokenStore
 import com.jikchin.app.data.remote.api.AuthApi
 import com.jikchin.app.data.remote.api.UserApi
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -34,10 +36,14 @@ object ServiceLocator {
             .addInterceptor(logging)
             .build()
 
+        val moshi = Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+
         retrofit = Retrofit.Builder()
             .baseUrl(baseUrl)
             .client(client)
-            .addConverterFactory(MoshiConverterFactory.create())
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
 
         authApi = retrofit.create(AuthApi::class.java)
